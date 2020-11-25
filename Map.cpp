@@ -1,3 +1,4 @@
+// This file is part of game engine TurnBasedGame
 #include <iostream>
 #include "CImg.h"
 #include <vector>
