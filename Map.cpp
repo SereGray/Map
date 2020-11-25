@@ -73,7 +73,7 @@ uint32_t getNum(uint32_t x, uint32_t y){// получение номера ве�
 }
 
 void GenerateTab(){
-	uint64_t max=height*width;
+	uint32_t max=height*width; // maby uint64_t
 	uint32_t w=0,h=0;
 	point pNull;
 	// заполняем таблицу нулевыми точками
@@ -178,6 +178,7 @@ uint32_t i=0;				// счетчик королевств
 vector<uint32_t> iterOnBorders;		// список из текущего положения итератора перебора 
 					// границ королевств
 for(uint32_t i=0;i< list_kingdooms.size();++i) iterOnBorders.push_back(0);
+
 while(freeSpace()){// пока свободные клетки не закончатся
 	
 	//1)обход окружности точек
@@ -202,11 +203,14 @@ while(freeSpace()){// пока свободные клетки не законч
 		}
 		cout<<" done loop kingdoom , i="<<i<<endl;
 		++i;
+
+
 	}	
-for(uint32_t i=0;i< this->list_kingdooms.size();++i) ++iterOnBorders[i];// перемещаем итератор
-cout << " refresh borders"<<endl;
-// обновление границ TODO: check there !
-for(auto kingd : list_kingdooms) RefreshBorders(kingd);
+
+	for(uint32_t i=0;i< this->list_kingdooms.size();++i) ++iterOnBorders[i];// перемещаем итератор
+	cout << " refresh borders"<<endl;
+	// обновление границ TODO: check there !
+	for(auto kingd : list_kingdooms) RefreshBorders(kingd);
 }
 			//Если площади областей не равны то
 			//сортируем 
