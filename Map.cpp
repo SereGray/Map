@@ -172,12 +172,24 @@ bool freeSpace(){
 	}
 	return false;
 }
+/* вывод на экран функц :
+3 for started loop 0 < -size smej list 6 10 12 16 done loop kingdoom N3
+	2 for started loop 0 < -size smej list 3 9 done loop kingdoom N2
+	1 for started loop 0 < -size smej list 19 23 done loop kingdoom N1
+	refresh borders
+	0 . 0 . 0 . 2 . 2 .
+	0 . 3 . 0 . 0 . 2 .
+	3 . 3 . 3 . 0 . 0 .
+	0 . 3 . 0 . 0 . 1 .
+	0 . 0 . 0 . 1 . 1 .
+	*/
 
 void FillMap(){
-uint32_t i=0;				// счетчик королевств
-vector<uint32_t> iterOnBorders;		// список из текущего положения итератора перебора 
-					// границ королевств
-for(uint32_t i=0;i< list_kingdooms.size();++i) iterOnBorders.push_back(0);
+//uint32_t i=0;				// счетчик королевств
+vector<uint32_t> iterOnBorders;		// список текущего положения итератора перебора 
+					//по пограничным вершинам для всех королевств ( массив итераторов по одному на королевство)
+					//
+for(uint32_t i=0;i< list_kingdooms.size();++i) iterOnBorders.push_back(0);  //  установка начального значения итератора на 0
 
 while(freeSpace()){// пока свободные клетки не закончатся
 	
@@ -189,11 +201,14 @@ while(freeSpace()){// пока свободные клетки не законч
 	for(auto kingd: list_kingdooms){
 		cout<<kingd.my_N()<<" for started loop ";
 		// движение по окружности границы по их порядку начиная с правой
-		if(iterOnBorders[i]>=kingd.borders.size())iterOnBorders[i]=0;
+		if(iterOnBorders[kingd.my_N() - 1]>=kingd.borders.size())iterOnBorders[kingd.my_N() - 1]=0;  // если итератор вышел за 
+										//"границы королевства" то возвращаем на стартовую поз
+
 		//  если заграничная точка ничья то присваиваем (только 1)
 		//  далее прохожу по границе numV - номер заграничной вершины(точки)
-		cout<<tabSmej[kingd.borders[iterOnBorders[i]]].list_neighbor.size()<<" <-size smej list";
-		for(uint32_t numV: tabSmej[kingd.borders[iterOnBorders[i]]].smej){
+		cout<<tabSmej[kingd.borders[iterOnBorders[kingd.my_N() - 1]]].list_neighbor.size()<<" <-size smej list";
+		// двигаюсь по списку смежности - по смежным вершинам вершины "tabSmej[kingd.borders[iterOnBorders[i]]]"
+		for(uint32_t numV: tabSmej[kingd.borders[iterOnBorders[kingd.my_N() - 1]]].smej){
 			cout <<" "<< numV;
 			if(tabSmej[numV].N_owner==0){
 				tabSmej[numV].N_owner=kingd.my_N();
@@ -201,10 +216,7 @@ while(freeSpace()){// пока свободные клетки не законч
 				break; // quit if ok
 			}
 		}
-		cout<<" done loop kingdoom , i="<<i<<endl;
-		++i;
-
-
+		cout<<" done loop kingdoom N"<< kingd.my_N() <<endl;
 	}	
 
 	for(uint32_t i=0;i< this->list_kingdooms.size();++i) ++iterOnBorders[i];// перемещаем итератор
