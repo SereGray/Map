@@ -34,6 +34,8 @@ class point{
 
 class kingdoom{ //  клас struct? предсавляющий изображение на карте территорию королевства и методы работы:
 	public:
+		static vector<kingdoom> list_kingdooms;
+	public:
 		uint32_t N;
 		vector<uint32_t> list_v; // список вершин
 		vector<uint32_t> borders; // список границ 
@@ -46,14 +48,39 @@ class kingdoom{ //  клас struct? предсавляющий изображе
 		uint32_t my_N(){
 			return N;
 		}
-	};
+
+		bool kingdsDisbalanced(uint16_t offset){ // offset - допуск на равенство 
+			uint16_t max=list_kingdooms[0].list_v.size();
+			for(auto kingd : list_kingdooms){
+				if(max < kingd.list_v.size())max=kingd.list_v.size();
+			}
+			uint16_t min=list_kingdooms[0].list_v.size();
+			for(auto kingd : list_kingdooms){
+				if(min > kingd.list_v.size())min=kingd.list_v.size();
+			}
+				if((max-min)>offset) return true;
+			return false;
+		}
+		
+		kingdoom get_minKingd(){
+			uint32_t min = 0 - 1;
+			kingdoom res = list_kingdooms[0];
+			for(auto kingd : list_kingdooms){
+				if(kingd.list_v.size() < min) {
+				       	min = kingd.list_t.size();
+					res = kingd;
+				}
+			}
+		return res;
+		}
+};
 
 class map{
 	private:
 		uint32_t width,height;
 		vector<pair<uint32_t,uint32_t>> points;//TODO: not used ?
 		vector<point> tabSmej; // таблица смежности представляет из себя список всех вершин
-		vector<kingdoom> list_kingdooms; // список королевств
+		//vector<kingdoom> list_kingdooms; // список королевств
 
 	public:
 	private:
@@ -123,7 +150,7 @@ void AddPoitsToMap( uint32_t po){ // ро - количество стартов�
 		}
 		kingdoom newKingdoom(getNum(x,y),po);
 		cout<<" new kingd n="<<newKingdoom.my_N()<<endl;
-		list_kingdooms.push_back(newKingdoom);
+		kigdoom::list_kingdooms.push_back(newKingdoom);
 		--po;
 	}
 }
@@ -146,12 +173,6 @@ void RefreshBorders(kingdoom & kingd){
 				break; //  эта вершина граничная  выходим
 			}
 		}
-		/*
-		if(tabSmej[numV].smej.size()>0 || tabSmej[numV].N_owner != 0){
-			// добавить к списку границ
-				kingd.borders.push_back(numV);
-		}
-		*/
 	}
 	cout << " end RefreshBorders borders size=" << kingd.borders.size() << endl;
 }
@@ -185,24 +206,13 @@ bool freeSpace(){
 	}
 	return false;
 }
-/* вывод на экран функц :
-3 for started loop 0 < -size smej list 6 10 12 16 done loop kingdoom N3
-	2 for started loop 0 < -size smej list 3 9 done loop kingdoom N2
-	1 for started loop 0 < -size smej list 19 23 done loop kingdoom N1
-	refresh borders
-	0 . 0 . 0 . 2 . 2 .
-	0 . 3 . 0 . 0 . 2 .
-	3 . 3 . 3 . 0 . 0 .
-	0 . 3 . 0 . 0 . 1 .
-	0 . 0 . 0 . 1 . 1 .
-	*/
 
 void FillMap(){
 //uint32_t i=0;				// счетчик королевств
 vector<uint32_t> iterOnBorders;		// список текущего положения итератора перебора 
 					//по пограничным вершинам для всех королевств ( массив итераторов по одному на королевство)
 					//
-for(uint32_t i=0;i< list_kingdooms.size();++i) iterOnBorders.push_back(0);  //  установка начального значения итератора на 0
+for(uint32_t i=0;i< kingdoom::list_kingdooms.size();++i) iterOnBorders.push_back(0);  //  установка начального значения итератора на 0
 
 while(freeSpace()){// пока свободные клетки не закончатся
 	
@@ -211,7 +221,7 @@ while(freeSpace()){// пока свободные клетки не законч
 	//2)определение новых границ
 	
 	//Обход
-	for(auto &kingd: list_kingdooms){
+	for(auto &kingd: kingdoom::list_kingdooms){
 		cout<< " start loop for KingN="<<kingd.my_N();
 		// движение по окружности границы по их порядку начиная с правой
 		if (iterOnBorders[kingd.my_N() - 1] >= kingd.borders.size()) {
@@ -241,7 +251,7 @@ while(freeSpace()){// пока свободные клетки не законч
 	 // перемещаем итератор
 	cout << " refresh borders"<<endl;
 	// обновление границ TODO: check there !
-	for(auto & kingd : list_kingdooms) RefreshBorders(kingd);
+	for(auto & kingd : kingdoom::list_kingdooms) RefreshBorders(kingd);
 }
 			//Если площади областей не равны то
 			//сортируем 
@@ -251,7 +261,10 @@ while(freeSpace()){// пока свободные клетки не законч
 			//строим цепочку до самой большой
 			//тянем к себе точки
 			//
-			
+while(kingdoom::kingdsDisbalanced(1)){// пока королевства разбалансированны (допуск 1 точка)
+	kingdoom kingd = kingdoom::get_minKingd();
+	
+}	
 
 }
 	public:
