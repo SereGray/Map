@@ -32,10 +32,11 @@ class point{
 
 };
 
-class kingdoom{ //  клас struct? предсавляющий изображение на карте территорию королевства и методы работы:
+class kingdoom{ //  клас предсавляющий изображение на карте территорию королевства и методы работы:
 	public:
 		static vector<kingdoom> list_kingdooms;
 	public:
+
 		uint32_t N;
 		vector<uint32_t> list_v; // список вершин
 		vector<uint32_t> borders; // список границ 
@@ -49,7 +50,23 @@ class kingdoom{ //  клас struct? предсавляющий изображе
 			return N;
 		}
 
-		bool kingdsDisbalanced(uint16_t offset){ // offset - допуск на равенство 
+
+		static void BalanceArea() {
+			while (kingdsDisbalanced(1)) {// пока королевства разбалансированны (допуск 1 точка)
+				//kingdoom kingdCurrent; // = kingdoom::get_minKingd(); //берем самую маленькую площадь
+				uint32_t min = 0 - 1, kingdNum=0;
+				//vector<kingdoom> list_kingdoomsEdit = list_kingdooms;
+				// сортирую королевства по величине и добавляю номер в цепочку
+				std::sort(list_kingdooms.begin(), list_kingdooms.end(), [](kingdoom lkdm, kingdoom rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
+				// цикл:
+				//выбираем точку на гранце
+				//повторяем для следующего королевства до последнего
+				//
+				// передаем точки
+			}
+		}
+
+		static bool kingdsDisbalanced(uint16_t offset){ // offset - допуск на равенство 
 			uint16_t max=list_kingdooms[0].list_v.size();
 			for(auto kingd : list_kingdooms){
 				if(max < kingd.list_v.size())max=kingd.list_v.size();
@@ -62,12 +79,12 @@ class kingdoom{ //  клас struct? предсавляющий изображе
 			return false;
 		}
 		
-		kingdoom get_minKingd(){
+		static kingdoom get_minKingd(){
 			uint32_t min = 0 - 1;
 			kingdoom res = list_kingdooms[0];
 			for(auto kingd : list_kingdooms){
 				if(kingd.list_v.size() < min) {
-				       	min = kingd.list_t.size();
+				       	min = kingd.list_v.size();
 					res = kingd;
 				}
 			}
@@ -79,10 +96,8 @@ class map{
 	private:
 		uint32_t width,height;
 		vector<pair<uint32_t,uint32_t>> points;//TODO: not used ?
-		vector<point> tabSmej; // таблица смежности представляет из себя список всех вершин
-		//vector<kingdoom> list_kingdooms; // список королевств
-
 	public:
+		vector<point> tabSmej; // таблица смежности представляет из себя список всех вершин
 	private:
 		//  генерирует вектор координат ( ВНИМАНИЕ  повторяющихся)
 void GenerateCoord(uint32_t p){
@@ -150,7 +165,7 @@ void AddPoitsToMap( uint32_t po){ // ро - количество стартов�
 		}
 		kingdoom newKingdoom(getNum(x,y),po);
 		cout<<" new kingd n="<<newKingdoom.my_N()<<endl;
-		kigdoom::list_kingdooms.push_back(newKingdoom);
+		kingdoom::list_kingdooms.push_back(newKingdoom);
 		--po;
 	}
 }
@@ -208,67 +223,50 @@ bool freeSpace(){
 }
 
 void FillMap(){
-//uint32_t i=0;				// счетчик королевств
-vector<uint32_t> iterOnBorders;		// список текущего положения итератора перебора 
+	vector<uint32_t> iterOnBorders;		// список текущего положения итератора перебора 
 					//по пограничным вершинам для всех королевств ( массив итераторов по одному на королевство)
-					//
-for(uint32_t i=0;i< kingdoom::list_kingdooms.size();++i) iterOnBorders.push_back(0);  //  установка начального значения итератора на 0
+	for(uint32_t i=0;i< kingdoom::list_kingdooms.size();++i) iterOnBorders.push_back(0);  //  установка начального значения итератора на 0
 
-while(freeSpace()){// пока свободные клетки не закончатся
+	while(freeSpace()){// пока свободные клетки не закончатся
 	
 	//1)обход окружности точек
 	//добавление незанятых (окрашивание)
 	//2)определение новых границ
 	
 	//Обход
-	for(auto &kingd: kingdoom::list_kingdooms){
-		cout<< " start loop for KingN="<<kingd.my_N();
-		// движение по окружности границы по их порядку начиная с правой
-		if (iterOnBorders[kingd.my_N() - 1] >= kingd.borders.size()) {
-			cout << " iterOnBord=" <<iterOnBorders[kingd.my_N()-1]<<" set to 0   where bord size()="<<kingd.borders.size()<<"     ";
-			iterOnBorders[kingd.my_N() - 1] = 0;  // если итератор вышел за 
+		for(auto &kingd: kingdoom::list_kingdooms){
+			cout<< " start loop for KingN="<<kingd.my_N();
+			// движение по окружности границы по их порядку начиная с правой
+			if (iterOnBorders[kingd.my_N() - 1] >= kingd.borders.size()) {
+				cout << " iterOnBord=" <<iterOnBorders[kingd.my_N()-1]<<" set to 0   where bord size()="<<kingd.borders.size()<<"     ";
+				iterOnBorders[kingd.my_N() - 1] = 0;  // если итератор вышел за 
 										//"границы королевства" то возвращаем на стартовую поз
-			// TODO: итератор вышел за пределы kingd.borders например итертор указывает
-			// на элемент №1 когда есть только под номером 0 refresh borders ?
-		}
-		//  если заграничная точка ничья то присваиваем (только 1)
-		//  далее прохожу по границе numV - номер заграничной вершины(точки)
-		cout<< " size smej list ="<<tabSmej[kingd.borders[iterOnBorders[kingd.my_N() - 1]]].smej.size();
-		// двигаюсь по списку смежности - по смежным вершинам вершины "tabSmej[kingd.borders[iterOnBorders[i]]]"
-		for(uint32_t numV: tabSmej[kingd.borders[iterOnBorders[kingd.my_N() - 1]]].smej){
-			cout <<" "<< numV;
-			if(tabSmej[numV].N_owner==0){
-				tabSmej[numV].N_owner=kingd.my_N();
-				cout<<"added point N="<< numV << " to kingdoom N="<<kingd.my_N()<<endl;
-				kingd.list_v.push_back(numV);
-				break; // quit if ok
 			}
-		}
-		++iterOnBorders[kingd.my_N() - 1];
-		cout<<"        done loop kingd N"<< kingd.my_N() << "iterOnBorders refer to V N="<<iterOnBorders[kingd.my_N() - 1] <<endl;
-	}	
-
-	 // перемещаем итератор
-	cout << " refresh borders"<<endl;
-	// обновление границ TODO: check there !
-	for(auto & kingd : kingdoom::list_kingdooms) RefreshBorders(kingd);
-}
-			//Если площади областей не равны то
-			//сортируем 
-			//цикл пока не равны
-			//берем самую маленькую:w
-			//площадь(выбираем точку на гранце)
-			//строим цепочку до самой большой
-			//тянем к себе точки
-			//
-while(kingdoom::kingdsDisbalanced(1)){// пока королевства разбалансированны (допуск 1 точка)
-	kingdoom kingd = kingdoom::get_minKingd();
+			//  если заграничная точка ничья то присваиваем (только 1)
+			//  далее прохожу по границе numV - номер заграничной вершины(точки)
+			cout<< " size smej list ="<<tabSmej[kingd.borders[iterOnBorders[kingd.my_N() - 1]]].smej.size();
+			// двигаюсь по списку смежности - по смежным вершинам вершины "tabSmej[kingd.borders[iterOnBorders[i]]]"
+			for(uint32_t numV: tabSmej[kingd.borders[iterOnBorders[kingd.my_N() - 1]]].smej){
+				cout <<" "<< numV;
+				if(tabSmej[numV].N_owner==0){
+					tabSmej[numV].N_owner=kingd.my_N();
+					cout<<"added point N="<< numV << " to kingdoom N="<<kingd.my_N()<<endl;
+					kingd.list_v.push_back(numV);
+					break; // quit if ok
+				}
+			}
+			++iterOnBorders[kingd.my_N() - 1]; 	 // перемещаем итератор
+			cout<<"        done loop kingd N"<< kingd.my_N() << "iterOnBorders refer to V N="<<iterOnBorders[kingd.my_N() - 1] <<endl;
+		}	
+		for(auto & kingd : kingdoom::list_kingdooms) RefreshBorders(kingd);
+	}
 	
-}	
+	// выравниваем площадь
+	kingdoom::BalanceArea();
+	
 
 }
 	public:
-		vector<uint32_t> list_smej;
 		map(uint32_t w,uint32_t h, uint32_t p): width(w), height(h){
 			// создаем таблицу списков смежности
 			cout<<" gen tab\n";
