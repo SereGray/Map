@@ -9,7 +9,7 @@ class point{
 	uint32_t x,y; //   TODO: не инициализированны
 	public:
 		vector<uint32_t> smej; // смежные точки 
-		vector<uint32_t> list_neighbor; // смежные точки принадлежащие другим игровым объектам
+		vector<uint32_t> list_neighbor; // смежные точки принадлежащие другим игровым объектам                        NULL 
 		bool border_map;
 		uint16_t N_owner;
 	point(){
@@ -59,7 +59,20 @@ class kingdoom{ //  клас предсавляющий изображение �
 				// сортирую королевства по величине и добавляю номер в цепочку
 				std::sort(list_kingdooms.begin(), list_kingdooms.end(), [](kingdoom lkdm, kingdoom rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
 				// цикл:
-				//выбираем точку на гранце
+				vector<kingdoom>::iterator kingdIterator = list_kingdooms.begin();
+				while (kingdIterator != (list_kingdooms.end() - 1)) {
+										kingdoom kingd = *kingdIterator;
+					++kingdIterator;
+					//выбираем точку на гранце
+					for (auto numBorderV : kingd.borders) {
+						//смотрим ее соседей
+						for (auto numSmejV : map::tabSmej[numBorderV].smej) {
+							if (map::tabSmej[numSmejV].N_owner == kingdIterator->my_N()) { // условие нахождения точти которую передадим
+								//TODO: добавляем в список номеров точек которые нужно передать
+							}
+						}
+					}
+				}
 				//повторяем для следующего королевства до последнего
 				//
 				// передаем точки
@@ -97,7 +110,7 @@ class map{
 		uint32_t width,height;
 		vector<pair<uint32_t,uint32_t>> points;//TODO: not used ?
 	public:
-		vector<point> tabSmej; // таблица смежности представляет из себя список всех вершин
+		static vector<point> tabSmej; // таблица смежности представляет из себя список всех вершин
 	private:
 		//  генерирует вектор координат ( ВНИМАНИЕ  повторяющихся)
 void GenerateCoord(uint32_t p){
@@ -252,6 +265,12 @@ void FillMap(){
 					tabSmej[numV].N_owner=kingd.my_N();
 					cout<<"added point N="<< numV << " to kingdoom N="<<kingd.my_N()<<endl;
 					kingd.list_v.push_back(numV);
+					/*if(std::find(tabSmej[numV].list_neighbor.begin(),tabSmej[numV].list_neighbor.end()))
+					for (auto smejNum : tabSmej[numV].smej) { // TODO : test this  
+						if (tabSmej[smejNum].N_owner != kingd.my_N()) { // соседняя точка не должна быть моей
+							tabSmej[smejNum].list_neighbor.push_back(kingd.my_N()); // сообщаю соседним точкам о соседстве с другим игроком
+						}
+					}*/
 					break; // quit if ok
 				}
 			}
