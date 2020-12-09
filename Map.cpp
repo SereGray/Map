@@ -32,16 +32,16 @@ class point{
 
 };
 
-class kingdoom{ //  клас предсавляющий изображение на карте территорию королевства и методы работы:
+class terrain{ //  клас предсавляющий изображение на карте территорию королевства и методы работы:
 	public:
-		static vector<kingdoom> list_kingdooms;
+		static vector<terrain> list_terrains;
 	public:
 
 		uint32_t N;
 		vector<uint32_t> list_v; // список вершин
 		vector<uint32_t> borders; // список границ 
 		// создание экземпляра из первой точки
-		kingdoom(uint32_t num,uint32_t n){
+		terrain(uint32_t num,uint32_t n){
 			N=n;
 			list_v.push_back(num);
 			borders.push_back(num);
@@ -51,7 +51,7 @@ class kingdoom{ //  клас предсавляющий изображение �
 		}
 
 
-		static void BalanceArea() {
+		/*static void BalanceArea() {
 			while (kingdsDisbalanced(1)) {// пока королевства разбалансированны (допуск 1 точка)
 				//kingdoom kingdCurrent; // = kingdoom::get_minKingd(); //берем самую маленькую площадь
 				uint32_t min = 0 - 1, kingdNum=0;
@@ -77,28 +77,71 @@ class kingdoom{ //  клас предсавляющий изображение �
 				//
 				// передаем точки
 			}
+		}*/
+
+
+		static void BalanceArea() {
+			while (terrainsDisbalanced(1)) {
+				std::sort(list_terrains.begin(), list_terrains.end(), [](terrain lkdm, terrain rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
+				vector<terrain>::iterator kingdIterator = list_terrains.begin();
+				while (kingdIterator != (list_terrains.end() - 1)) {
+					terrain kingd = *kingdIterator;
+					++kingdIterator;
+					for (auto numBorderV : kingd.borders) {
+						// далее по алгоритму декстры ищем путь к наибольшей терр
+						//int n;
+						//... чтение n ...
+						//	vector < vector < pair<int, int> > > g(n);
+						//... чтение графа ...
+						//int s = numBorderV; // стартовая вершина
+						//TODO: check types
+						vector<int> d(n, INT32_MAX), p(n);
+						d[numBorderV] = 0;
+						vector<char> u(n);
+						for (int i = 0; i < n; ++i) {
+							int v = -1;
+							for (int j = 0; j < n; ++j)
+								if (!u[j] && (v == -1 || d[j] < d[v]))
+									v = j;
+							if (d[v] == INT32_MAX)
+								break;
+							u[v] = true;
+
+							for (size_t j = 0; j < g[v].size(); ++j) {
+								int to = g[v][j].first,
+									len = g[v][j].second;
+								if (d[v] + len < d[to]) {
+									d[to] = d[v] + len;
+									p[to] = v;
+								}
+							}
+						}
+						
+					}
+				}
+			}
 		}
 
-		static bool kingdsDisbalanced(uint16_t offset){ // offset - допуск на равенство 
-			uint16_t max=list_kingdooms[0].list_v.size();
-			for(auto kingd : list_kingdooms){
-				if(max < kingd.list_v.size())max=kingd.list_v.size();
+		static bool terrainsDisbalanced(uint16_t offset){ // offset - допуск на равенство 
+			uint16_t max=list_terrains[0].list_v.size();
+			for(auto terr : list_terrains){
+				if(max < terr.list_v.size())max=terr.list_v.size();
 			}
-			uint16_t min=list_kingdooms[0].list_v.size();
-			for(auto kingd : list_kingdooms){
-				if(min > kingd.list_v.size())min=kingd.list_v.size();
+			uint16_t min=list_terrains[0].list_v.size();
+			for(auto terr : list_terrains){
+				if(min > terr.list_v.size())min=terr.list_v.size();
 			}
 				if((max-min)>offset) return true;
 			return false;
 		}
 		
-		static kingdoom get_minKingd(){
+		static terrain get_minTerrain(){
 			uint32_t min = 0 - 1;
-			kingdoom res = list_kingdooms[0];
-			for(auto kingd : list_kingdooms){
-				if(kingd.list_v.size() < min) {
-				       	min = kingd.list_v.size();
-					res = kingd;
+			terrain res = list_terrains[0];
+			for(auto terr : list_terrains){
+				if(terr.list_v.size() < min) {
+				       	min = terr.list_v.size();
+					res = terr;
 				}
 			}
 		return res;
@@ -176,18 +219,18 @@ void AddPoitsToMap( uint32_t po){ // ро - количество стартов�
 			}
 			tabSmej[getNum(x,y)].N_owner=po;
 		}
-		kingdoom newKingdoom(getNum(x,y),po);
+		terrain newKingdoom(getNum(x,y),po);
 		cout<<" new kingd n="<<newKingdoom.my_N()<<endl;
-		kingdoom::list_kingdooms.push_back(newKingdoom);
+		terrain::list_terrains.push_back(newKingdoom);
 		--po;
 	}
 }
 
 // обновление границ (решение влоб)
-void RefreshBorders(kingdoom & kingd){
-	cout << " refBord kingd N=" << kingd.my_N() << " kingd list_v="<<kingd.list_v.size();
-	kingd.borders.clear();
-	for(auto numV: kingd.list_v){// обходим все вершины королевства по номерам и пров
+void RefreshBorders(terrain & terr){
+	cout << " refBord kingd N=" << terr.my_N() << " kingd list_v="<<terr.list_v.size();
+	terr.borders.clear();
+	for(auto numV: terr.list_v){// обходим все вершины королевства по номерам и пров
 		//  условию границы  (список точек принадлежащ соседям не пуст или соседняя 
 		//  точка никому не принадлежит 
 
@@ -195,14 +238,14 @@ void RefreshBorders(kingdoom & kingd){
 		cout << "ver N=" << numV;
 		// цикл проверяет соседние точки если соседняя точка не моя то значит проверяемая точка - гранинкая
 		for (auto smej_V : tabSmej[numV].smej) {
-			if (tabSmej[smej_V].N_owner != kingd.my_N()) {
+			if (tabSmej[smej_V].N_owner != terr.my_N()) {
 				cout << " detect V =" << smej_V;
-				kingd.borders.push_back(numV);
+				terr.borders.push_back(numV);
 				break; //  эта вершина граничная  выходим
 			}
 		}
 	}
-	cout << " end RefreshBorders borders size=" << kingd.borders.size() << endl;
+	cout << " end RefreshBorders borders size=" << terr.borders.size() << endl;
 }
 
 // вывод на экран карты
@@ -238,7 +281,7 @@ bool freeSpace(){
 void FillMap(){
 	vector<uint32_t> iterOnBorders;		// список текущего положения итератора перебора 
 					//по пограничным вершинам для всех королевств ( массив итераторов по одному на королевство)
-	for(uint32_t i=0;i< kingdoom::list_kingdooms.size();++i) iterOnBorders.push_back(0);  //  установка начального значения итератора на 0
+	for(uint32_t i=0;i< terrain::list_terrains.size();++i) iterOnBorders.push_back(0);  //  установка начального значения итератора на 0
 
 	while(freeSpace()){// пока свободные клетки не закончатся
 	
@@ -247,7 +290,7 @@ void FillMap(){
 	//2)определение новых границ
 	
 	//Обход
-		for(auto &kingd: kingdoom::list_kingdooms){
+		for(auto &kingd: terrain::list_terrains){
 			cout<< " start loop for KingN="<<kingd.my_N();
 			// движение по окружности границы по их порядку начиная с правой
 			if (iterOnBorders[kingd.my_N() - 1] >= kingd.borders.size()) {
@@ -277,11 +320,11 @@ void FillMap(){
 			++iterOnBorders[kingd.my_N() - 1]; 	 // перемещаем итератор
 			cout<<"        done loop kingd N"<< kingd.my_N() << "iterOnBorders refer to V N="<<iterOnBorders[kingd.my_N() - 1] <<endl;
 		}	
-		for(auto & kingd : kingdoom::list_kingdooms) RefreshBorders(kingd);
+		for(auto & kingd : terrain::list_terrains) RefreshBorders(kingd);
 	}
 	
 	// выравниваем площадь
-	kingdoom::BalanceArea();
+	terrain::BalanceArea();
 	
 
 }
