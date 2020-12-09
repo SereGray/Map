@@ -34,8 +34,6 @@ class point{
 
 class terrain{ //  клас предсавляющий изображение на карте территорию королевства и методы работы:
 	public:
-		static vector<terrain> list_terrains;
-	public:
 
 		uint32_t N;
 		vector<uint32_t> list_v; // список вершин
@@ -49,121 +47,26 @@ class terrain{ //  клас предсавляющий изображение н
 		uint32_t my_N(){
 			return N;
 		}
-
-
-		/*static void BalanceArea() {
-			while (kingdsDisbalanced(1)) {// пока королевства разбалансированны (допуск 1 точка)
-				//kingdoom kingdCurrent; // = kingdoom::get_minKingd(); //берем самую маленькую площадь
-				uint32_t min = 0 - 1, kingdNum=0;
-				//vector<kingdoom> list_kingdoomsEdit = list_kingdooms;
-				// сортирую королевства по величине и добавляю номер в цепочку
-				std::sort(list_kingdooms.begin(), list_kingdooms.end(), [](kingdoom lkdm, kingdoom rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
-				// цикл:
-				vector<kingdoom>::iterator kingdIterator = list_kingdooms.begin();
-				while (kingdIterator != (list_kingdooms.end() - 1)) {
-										kingdoom kingd = *kingdIterator;
-					++kingdIterator;
-					//выбираем точку на гранце
-					for (auto numBorderV : kingd.borders) {
-						//смотрим ее соседей
-						for (auto numSmejV : map::tabSmej[numBorderV].smej) {
-							if (map::tabSmej[numSmejV].N_owner == kingdIterator->my_N()) { // условие нахождения точти которую передадим
-								//TODO: добавляем в список номеров точек которые нужно передать
-							}
-						}
-					}
-				}
-				//повторяем для следующего королевства до последнего
-				//
-				// передаем точки
-			}
-		}*/
-
-
-		static void BalanceArea() {
-			while (terrainsDisbalanced(1)) {
-				std::sort(list_terrains.begin(), list_terrains.end(), [](terrain lkdm, terrain rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
-				vector<terrain>::iterator kingdIterator = list_terrains.begin();
-				while (kingdIterator != (list_terrains.end() - 1)) {
-					terrain kingd = *kingdIterator;
-					++kingdIterator;
-					for (auto numBorderV : kingd.borders) {
-						// далее по алгоритму декстры ищем путь к наибольшей терр
-						//int n;
-						//... чтение n ...
-						//	vector < vector < pair<int, int> > > g(n);
-						//... чтение графа ...
-						//int s = numBorderV; // стартовая вершина
-						//TODO: check types
-						vector<int> d(n, INT32_MAX), p(n);
-						d[numBorderV] = 0;
-						vector<char> u(n);
-						for (int i = 0; i < n; ++i) {
-							int v = -1;
-							for (int j = 0; j < n; ++j)
-								if (!u[j] && (v == -1 || d[j] < d[v]))
-									v = j;
-							if (d[v] == INT32_MAX)
-								break;
-							u[v] = true;
-
-							for (size_t j = 0; j < g[v].size(); ++j) {
-								int to = g[v][j].first,
-									len = g[v][j].second;
-								if (d[v] + len < d[to]) {
-									d[to] = d[v] + len;
-									p[to] = v;
-								}
-							}
-						}
-						
-					}
-				}
-			}
-		}
-
-		static bool terrainsDisbalanced(uint16_t offset){ // offset - допуск на равенство 
-			uint16_t max=list_terrains[0].list_v.size();
-			for(auto terr : list_terrains){
-				if(max < terr.list_v.size())max=terr.list_v.size();
-			}
-			uint16_t min=list_terrains[0].list_v.size();
-			for(auto terr : list_terrains){
-				if(min > terr.list_v.size())min=terr.list_v.size();
-			}
-				if((max-min)>offset) return true;
-			return false;
-		}
-		
-		static terrain get_minTerrain(){
-			uint32_t min = 0 - 1;
-			terrain res = list_terrains[0];
-			for(auto terr : list_terrains){
-				if(terr.list_v.size() < min) {
-				       	min = terr.list_v.size();
-					res = terr;
-				}
-			}
-		return res;
-		}
 };
 
 class map{
+	//friend class terrain;
 	private:
 		uint32_t width,height;
 		vector<pair<uint32_t,uint32_t>> points;//TODO: not used ?
 	public:
-		static vector<point> tabSmej; // таблица смежности представляет из себя список всех вершин
+		 vector<point> tabSmej; // таблица смежности представляет из себя список всех вершин
+		 vector<terrain> list_terrains;
 	private:
 		//  генерирует вектор координат ( ВНИМАНИЕ  повторяющихся)
 void GenerateCoord(uint32_t p){
-			for(uint32_t i=0;i<p;i++){
-				int32_t cx=0,cy=0;
-				cx=rand()%width;
-				cy=rand()%height;
-				cout<< "cx="<<cx<<" cy="<<cy<<endl;
-			points.push_back(std::make_pair(cx,cy));
-			}
+	for(uint32_t i=0;i<p;i++){
+		int32_t cx=0,cy=0;
+		cx=rand()%width;
+		cy=rand()%height;
+		cout<< "cx="<<cx<<" cy="<<cy<<endl;
+		points.push_back(std::make_pair(cx,cy));
+	}
 }
 
 uint32_t getNum(uint32_t x, uint32_t y){// получение номера вершины по координатам
@@ -221,7 +124,7 @@ void AddPoitsToMap( uint32_t po){ // ро - количество стартов�
 		}
 		terrain newKingdoom(getNum(x,y),po);
 		cout<<" new kingd n="<<newKingdoom.my_N()<<endl;
-		terrain::list_terrains.push_back(newKingdoom);
+		list_terrains.push_back(newKingdoom);
 		--po;
 	}
 }
@@ -278,10 +181,109 @@ bool freeSpace(){
 	return false;
 }
 
+void DjekstraPath(uint32_t numBorderV,uint32_t numTargetV, vector<uint32_t> &path){
+	//считается что все вершины доступны иначе добавить вес ребра = бесконечности или др. промеж. варианты
+uint32_t n=tabSmej.size();vector<uint32_t> dist(n, UINT32_MAX), parent(n);
+dist[numBorderV] = 0; // // стартовая вершина
+vector<bool> used(n);
+for (uint32_t i = 0; i < n; ++i) {
+	int64_t vertex = -1;
+	for (uint32_t j = 0; j < n; ++j)
+		if (!used[j] && (vertex == -1 || dist[j] < dist[vertex]))
+			vertex = j;
+		if (dist[vertex] == UINT32_MAX)
+		break;
+		used[vertex] = true;
+		for (size_t j = 0; j < tabSmej[vertex].smej.size(); ++j) {
+			uint32_t to = tabSmej[vertex].smej[j];
+			const uint32_t len =1; // вес ребра
+			if (dist[vertex] + len < dist[to]) {
+				dist[to] = dist[vertex] + len;
+				parent[to] = vertex;
+			}
+		}
+	}
+	//recover path to target from parent vector
+	vector<uint32_t> tempPath;
+	uint32_t currV=numTargetV;
+	//пока не достигнем стартовой вершины 
+	while(parent[currV]!=numBorderV){
+		//восстанавливаем предка
+		tempPath.push_back(currV);
+		currV = parent[currV];
+	}
+	// add start vertex
+	tempPath.push_back(numBorderV);
+	for(uint32_t i=0;i<tempPath.size();++i){
+		uint32_t temp= tempPath.back();
+		path.push_back(numVertex);
+		tempPath.pop_back();
+	}
+
+}
+
+vector<vector<uint32_t>> createDxDTable(){
+	
+}
+
+void Floid_Yorshell(vector<uint32_t> path){
+	//create matrix nxn smej from tabSmej
+	//TODO: smejDxD
+	vector<vector<uint32>> smejDxD=createDxDTable();
+	uint32_t n = smejDxD.size();
+	for(uint32_t k=0;k<n;++k)
+		for(uint32_t i=0;i<n;++i)
+			for(uint32_t j=0;j<n;++j)
+				smejDxD[i][j] = min(smejDxD[i][j], smejDxD[i][k]+smejDxD[k][k]);
+}
+	
+void BalanceArea() {
+	while (terrainsDisbalanced(1)) {
+		std::sort(list_terrains.begin(), list_terrains.end(), [](terrain lkdm, terrain rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
+		vector<terrain>::iterator kingdIterator = list_terrains.begin();
+		while (kingdIterator != (list_terrains.end() - 1)) {
+			terrain kingd = *kingdIterator;
+			++kingdIterator;
+			for (auto numBorderV : kingd.borders) {//any vertex from nim terrain
+			// далее по алгоритму декстры ищем путь к наибольшей терр
+			// по алгоритму флойда-уоршелла ищем все пути и выбираем наикороткий
+			vectoer<uint32_t> path;
+			DjekstraPath()	
+			// TODO: break ;	
+			}
+		}
+	}
+}
+
+bool terrainsDisbalanced(uint16_t offset){ // offset - допуск на равенство 
+	uint16_t max=list_terrains[0].list_v.size();
+	for(auto terr : list_terrains){
+		if(max < terr.list_v.size())max=terr.list_v.size();
+	}
+	uint16_t min=list_terrains[0].list_v.size();
+	for(auto terr : list_terrains){
+		if(min > terr.list_v.size())min=terr.list_v.size();
+	}
+	if((max-min)>offset) return true;
+	return false;
+}
+		
+terrain get_minTerrain(){
+	uint32_t min = 0 - 1;
+	terrain res = list_terrains[0];
+	for(auto terr : list_terrains){
+		if(terr.list_v.size() < min) {
+		       	min = terr.list_v.size();
+			res = terr;
+		}
+	}
+	return res;
+}
+
 void FillMap(){
 	vector<uint32_t> iterOnBorders;		// список текущего положения итератора перебора 
 					//по пограничным вершинам для всех королевств ( массив итераторов по одному на королевство)
-	for(uint32_t i=0;i< terrain::list_terrains.size();++i) iterOnBorders.push_back(0);  //  установка начального значения итератора на 0
+	for(uint32_t i=0;i< list_terrains.size();++i) iterOnBorders.push_back(0);  //  установка начального значения итератора на 0
 
 	while(freeSpace()){// пока свободные клетки не закончатся
 	
@@ -290,7 +292,7 @@ void FillMap(){
 	//2)определение новых границ
 	
 	//Обход
-		for(auto &kingd: terrain::list_terrains){
+		for(auto &kingd: list_terrains){
 			cout<< " start loop for KingN="<<kingd.my_N();
 			// движение по окружности границы по их порядку начиная с правой
 			if (iterOnBorders[kingd.my_N() - 1] >= kingd.borders.size()) {
@@ -308,25 +310,18 @@ void FillMap(){
 					tabSmej[numV].N_owner=kingd.my_N();
 					cout<<"added point N="<< numV << " to kingdoom N="<<kingd.my_N()<<endl;
 					kingd.list_v.push_back(numV);
-					/*if(std::find(tabSmej[numV].list_neighbor.begin(),tabSmej[numV].list_neighbor.end()))
-					for (auto smejNum : tabSmej[numV].smej) { // TODO : test this  
-						if (tabSmej[smejNum].N_owner != kingd.my_N()) { // соседняя точка не должна быть моей
-							tabSmej[smejNum].list_neighbor.push_back(kingd.my_N()); // сообщаю соседним точкам о соседстве с другим игроком
-						}
-					}*/
 					break; // quit if ok
 				}
 			}
 			++iterOnBorders[kingd.my_N() - 1]; 	 // перемещаем итератор
 			cout<<"        done loop kingd N"<< kingd.my_N() << "iterOnBorders refer to V N="<<iterOnBorders[kingd.my_N() - 1] <<endl;
 		}	
-		for(auto & kingd : terrain::list_terrains) RefreshBorders(kingd);
+		for(auto & kingd : list_terrains) RefreshBorders(kingd);
 	}
 	
 	// выравниваем площадь
-	terrain::BalanceArea();
+	//BalanceArea();
 	
-
 }
 	public:
 		map(uint32_t w,uint32_t h, uint32_t p): width(w), height(h){
