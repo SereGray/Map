@@ -131,24 +131,20 @@ void AddPoitsToMap( uint32_t po){ // ро - количество стартов�
 
 // обновление границ (решение влоб)
 void RefreshBorders(terrain & terr){
-	cout << " refBord kingd N=" << terr.my_N() << " kingd list_v="<<terr.list_v.size();
 	terr.borders.clear();
 	for(auto numV: terr.list_v){// обходим все вершины королевства по номерам и пров
 		//  условию границы  (список точек принадлежащ соседям не пуст или соседняя 
 		//  точка никому не принадлежит 
 
 	//  получаю вершину смотрю список смежных  и владельца
-		cout << "ver N=" << numV;
 		// цикл проверяет соседние точки если соседняя точка не моя то значит проверяемая точка - гранинкая
 		for (auto smej_V : tabSmej[numV].smej) {
 			if (tabSmej[smej_V].N_owner != terr.my_N()) {
-				cout << " detect V =" << smej_V;
 				terr.borders.push_back(numV);
 				break; //  эта вершина граничная  выходим
 			}
 		}
 	}
-	cout << " end RefreshBorders borders size=" << terr.borders.size() << endl;
 }
 
 // вывод на экран карты
@@ -216,7 +212,7 @@ for (uint32_t i = 0; i < n; ++i) {
 	tempPath.push_back(numBorderV);
 	for(uint32_t i=0;i<tempPath.size();++i){
 		uint32_t temp= tempPath.back();
-		path.push_back(numVertex);
+		path.push_back(temp);
 		tempPath.pop_back();
 	}
 
@@ -229,7 +225,7 @@ vector<vector<uint32_t>> createDxDTable(){
 void Floid_Yorshell(vector<uint32_t> path){
 	//create matrix nxn smej from tabSmej
 	//TODO: smejDxD
-	vector<vector<uint32>> smejDxD=createDxDTable();
+	vector<vector<uint32_t>> smejDxD=createDxDTable();
 	uint32_t n = smejDxD.size();
 	for(uint32_t k=0;k<n;++k)
 		for(uint32_t i=0;i<n;++i)
@@ -247,8 +243,8 @@ void BalanceArea() {
 			for (auto numBorderV : kingd.borders) {//any vertex from nim terrain
 			// далее по алгоритму декстры ищем путь к наибольшей терр
 			// по алгоритму флойда-уоршелла ищем все пути и выбираем наикороткий
-			vectoer<uint32_t> path;
-			DjekstraPath()	
+			vector<uint32_t> path;
+			//DjekstraPath();
 			// TODO: break ;	
 			}
 		}
@@ -293,28 +289,22 @@ void FillMap(){
 	
 	//Обход
 		for(auto &kingd: list_terrains){
-			cout<< " start loop for KingN="<<kingd.my_N();
 			// движение по окружности границы по их порядку начиная с правой
 			if (iterOnBorders[kingd.my_N() - 1] >= kingd.borders.size()) {
-				cout << " iterOnBord=" <<iterOnBorders[kingd.my_N()-1]<<" set to 0   where bord size()="<<kingd.borders.size()<<"     ";
 				iterOnBorders[kingd.my_N() - 1] = 0;  // если итератор вышел за 
 										//"границы королевства" то возвращаем на стартовую поз
 			}
 			//  если заграничная точка ничья то присваиваем (только 1)
 			//  далее прохожу по границе numV - номер заграничной вершины(точки)
-			cout<< " size smej list ="<<tabSmej[kingd.borders[iterOnBorders[kingd.my_N() - 1]]].smej.size();
 			// двигаюсь по списку смежности - по смежным вершинам вершины "tabSmej[kingd.borders[iterOnBorders[i]]]"
 			for(uint32_t numV: tabSmej[kingd.borders[iterOnBorders[kingd.my_N() - 1]]].smej){
-				cout <<" "<< numV;
 				if(tabSmej[numV].N_owner==0){
 					tabSmej[numV].N_owner=kingd.my_N();
-					cout<<"added point N="<< numV << " to kingdoom N="<<kingd.my_N()<<endl;
 					kingd.list_v.push_back(numV);
 					break; // quit if ok
 				}
 			}
 			++iterOnBorders[kingd.my_N() - 1]; 	 // перемещаем итератор
-			cout<<"        done loop kingd N"<< kingd.my_N() << "iterOnBorders refer to V N="<<iterOnBorders[kingd.my_N() - 1] <<endl;
 		}	
 		for(auto & kingd : list_terrains) RefreshBorders(kingd);
 	}
@@ -336,6 +326,7 @@ void FillMap(){
 		//	GenerateCoord(p);
 			// заполняем территорию карты
 			FillMap();//TODO: infinity loop there !!!!
+			cout << endl;
 			MapToScreen();
 		}
 		void PrintTabSmej(){
