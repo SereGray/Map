@@ -230,7 +230,7 @@ void createDxDTable( vector<vector<uint32_t>> & inDxD){
 
 void Floid_Yorshell(vector<uint32_t> path){
 	//TODO:test matrix
-	vector<vector<uint32_t>> smejDxD(tabSmej.size(),0); // create tab matrix smej
+	vector<vector<uint32_t>> smejDxD(tabSmej.size(),0); // create tab matrix smej TODO: ERROR!
 	createDxDTable(smejDxD);
 	uint32_t n = smejDxD.size();
 	for(uint32_t k=0;k<n;++k)
