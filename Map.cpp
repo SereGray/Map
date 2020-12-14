@@ -218,19 +218,26 @@ for (uint32_t i = 0; i < n; ++i) {
 
 }
 
-vector<vector<uint32_t>> createDxDTable(){
-	
+void createDxDTable( vector<vector<uint32_t>> & inDxD){
+	uint32_t i=0;
+	for(point p : tabSmej){
+		for( uint32_t j: p.smej){
+			inDxD[i][j]=1;  // set 1 to contiguous(smej) vertex
+		}
+	++i;	
+	}
 }
 
 void Floid_Yorshell(vector<uint32_t> path){
-	//create matrix nxn smej from tabSmej
-	//TODO: smejDxD
-	vector<vector<uint32_t>> smejDxD=createDxDTable();
+	//TODO:test matrix
+	vector<vector<uint32_t>> smejDxD(tabSmej.size(),0); // create tab matrix smej
+	createDxDTable(smejDxD);
 	uint32_t n = smejDxD.size();
 	for(uint32_t k=0;k<n;++k)
 		for(uint32_t i=0;i<n;++i)
 			for(uint32_t j=0;j<n;++j)
 				smejDxD[i][j] = min(smejDxD[i][j], smejDxD[i][k]+smejDxD[k][k]);
+	// TODO:recover path;
 }
 	
 void BalanceArea() {
