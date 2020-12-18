@@ -228,16 +228,56 @@ void createDxDTable( vector<vector<uint32_t>> & inDxD){
 	}
 }
 
-void Floid_Yorshell(vector<uint32_t> path){
-	//TODO:test matrix
-	vector<vector<uint32_t>> smejDxD(tabSmej.size(),0); // create tab matrix smej TODO: ERROR!
-	createDxDTable(smejDxD);
-	uint32_t n = smejDxD.size();
-	for(uint32_t k=0;k<n;++k)
-		for(uint32_t i=0;i<n;++i)
-			for(uint32_t j=0;j<n;++j)
-				smejDxD[i][j] = min(smejDxD[i][j], smejDxD[i][k]+smejDxD[k][k]);
+void adjacentMatrix(vector<vector<uint32_t>> & inMatrix) {
+	inMatrix.clear();
+	unsigned n = tabSmej.size();
+	vector<uint32_t> v;
+	for (unsigned j = 0; j < n; ++j) {
+		v.push_back(UINT32_MAX);
+	}
+	for (unsigned i = 0; i < n; ++i) {
+		inMatrix.push_back(v);
+	}
+	for (unsigned i = 0; i < n; ++i) inMatrix[i][i] = 0;
+	// TODO: перевести из списка смежности в матрицу смежности
+}
+
+vector<uint32_t> Floid_Yorshell(uint32_t start, uint32_t end) { // start and end path vertex numbers
+	bool revers = false;
+	static bool used = false;
+	vector<uint32_t> path;
+	if (end < start) {  // switch at place
+		end += start;
+		start = end - start;
+		end -= start;
+		revers = true;
+	}
+	static vector<vector<uint32_t>> parentsMatrix;
+	if (!used) {
+		vector<vector<uint32_t>> adjacentMatrix;
+		createDxDTable(adjacentMatrix);
+		uint32_t n = adjacentMatrix.size();
+		for (unsigned i = 0; i < n; ++i) {
+			vector<uint32_t> p;
+			for (unsigned j = 0; j < n; ++j)p.push_back(i);
+			parentsMatrix.push_back(p);
+		}
+		for (uint32_t k = 0; k < n; ++k)
+			for (uint32_t i = 0; i < n; ++i)
+				for (uint32_t j = 0; j < n; ++j)
+					if (adjacentMatrix[i][j] > adjacentMatrix[i][k] + adjacentMatrix[k][j]) {
+						adjacentMatrix[i][j] = adjacentMatrix[i][k] + adjacentMatrix[k][j];
+						parentsMatrix[i][j] = k;
+					}
+	}
 	// TODO:recover path;
+	do {
+		path.push_back(end);
+		end = parentsMatrix[start][end];
+	} while (end != parentsMatrix[start][end]);
+	path.push_back(start);
+	if (!revers)reverse(path.begin(), path.end());
+	return path;
 }
 	
 void BalanceArea() {
