@@ -8,19 +8,19 @@ using namespace std;
 int main() {
 	cout << " 0 1 2 \n 3 4 5 \n 6 7 8 \n";
 	vector<vector<int>> map = { {0,0,0},{0,0,0},{0,0,0} };
-	int n = map.size() * map[0].size();
+	unsigned n = map.size() * map[0].size();
 	vector<vector<int>> matrix, parent;
 	// create matrix
-	for (int i = 0; i < map.size() * map[0].size(); ++i) {
+	for (unsigned i = 0; i < map.size() * map[0].size(); ++i) {
 		vector<int> v;
-		for (int j = 0; j < map.size() * map[0].size(); ++j) {
-			v.push_back(pow(2, 15));
+		for (unsigned j = 0; j < map.size() * map[0].size(); ++j) {
+			v.push_back(UINT32_MAX);
 		}
 		matrix.push_back(v);
 	}
-	for (int i = 0; i < map.size() * map[0].size(); ++i)matrix[i][i] = 0;
+	for (unsigned i = 0; i < map.size() * map[0].size(); ++i)matrix[i][i] = 0;
 	// set matrix
-	int x = 0, y = 0, vertexNum = 0;
+	unsigned x = 0, y = 0, vertexNum = 0;
 	for (vector<int> horiz : map) {
 		x = 0;
 		for (int i : horiz) {

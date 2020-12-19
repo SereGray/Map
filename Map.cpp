@@ -8,7 +8,7 @@ using namespace std;
 class point{
 	uint32_t x,y; //   TODO: не инициализированны
 	public:
-		vector<uint32_t> smej; // смежные точки 
+		vector<uint32_t> adjacentPoints; // смежные точки 
 		vector<uint32_t> list_neighbor; // смежные точки принадлежащие другим игровым объектам                        NULL 
 		bool border_map;
 		uint16_t N_owner;
@@ -55,7 +55,7 @@ class map{
 		uint32_t width,height;
 		vector<pair<uint32_t,uint32_t>> points;//TODO: not used ?
 	public:
-		 vector<point> tabSmej; // таблица смежности представляет из себя список всех вершин
+		 vector<point> adjacentList; // таблица смежности представляет из себя список всех вершин
 		 vector<terrain> list_terrains;
 	private:
 		//  генерирует вектор координат ( ВНИМАНИЕ  повторяющихся)
@@ -79,23 +79,23 @@ void GenerateTab(){
 	point pNull;
 	// заполняем таблицу нулевыми точками
 	for(uint32_t i=0;i<max;++i){
-		tabSmej.push_back(pNull);
+		adjacentList.push_back(pNull);
 	}
 	// заполняем таблицу смежности
 for(uint32_t i=0;i<max;++i){
-	tabSmej[i].setX(h);
-	tabSmej[i].setY(w);	
+	adjacentList[i].setX(h);
+	adjacentList[i].setY(w);	
 	// просматриваю таблицу вправо вниз добавляю 
 	// к текущей точке следущую смежную и к следующей текущую
 	// проверка правой границы
 	if(w<width-1){
-		tabSmej[i].smej.push_back(i+1);
-		tabSmej[i+1].smej.push_back(i); 
+		adjacentList[i].adjacentPoints.push_back(i+1);
+		adjacentList[i+1].adjacentPoints.push_back(i); 
 	}
 	// нижней границы
 	if(h<height-1){
-		tabSmej[i].smej.push_back(i+width);
-		tabSmej[i+width].smej.push_back(i);
+		adjacentList[i].adjacentPoints.push_back(i+width);
+		adjacentList[i+width].adjacentPoints.push_back(i);
 	}
 	// опредление координаты на карте
 	++w;
@@ -113,14 +113,14 @@ void AddPoitsToMap( uint32_t po){ // ро - количество стартов�
 	while(po>0){
 		uint32_t x=rand()%width;
 		uint32_t y=rand()%height;
-		if(tabSmej[x+y*width].N_owner==0){
-			tabSmej[getNum(x,y)].N_owner=po;
+		if(adjacentList[x+y*width].N_owner==0){
+			adjacentList[getNum(x,y)].N_owner=po;
 		}else{
-			while(tabSmej[getNum(x,y)].N_owner!=0){
+			while(adjacentList[getNum(x,y)].N_owner!=0){
 		x=rand()%width;
 		y=rand()%height;
 			}
-			tabSmej[getNum(x,y)].N_owner=po;
+			adjacentList[getNum(x,y)].N_owner=po;
 		}
 		terrain newKingdoom(getNum(x,y),po);
 		cout<<" new kingd n="<<newKingdoom.my_N()<<endl;
@@ -138,8 +138,8 @@ void RefreshBorders(terrain & terr){
 
 	//  получаю вершину смотрю список смежных  и владельца
 		// цикл проверяет соседние точки если соседняя точка не моя то значит проверяемая точка - гранинкая
-		for (auto smej_V : tabSmej[numV].smej) {
-			if (tabSmej[smej_V].N_owner != terr.my_N()) {
+		for (auto smej_V : adjacentList[numV].adjacentPoints) {
+			if (adjacentList[smej_V].N_owner != terr.my_N()) {
 				terr.borders.push_back(numV);
 				break; //  эта вершина граничная  выходим
 			}
@@ -153,7 +153,7 @@ void MapToScreen(){
 uint32_t k=0;
 	for(uint32_t j=0;j<height;++j){
 		for(uint32_t i=0;i<width;++i){
-			cout << tabSmej[k].N_owner<<" . ";
+			cout << adjacentList[k].N_owner<<" . ";
 			++k;
 		}
 		cout<<endl;
@@ -171,7 +171,7 @@ void MapToFile() {
 bool freeSpace(){
 	static uint32_t maxIteration=100;
 	if(--maxIteration==0)return false;
-	for(point p: tabSmej){
+	for(point p: adjacentList){
 		if(p.N_owner==0) return true;
 	}
 	return false;
@@ -179,19 +179,20 @@ bool freeSpace(){
 
 void DjekstraPath(uint32_t numBorderV,uint32_t numTargetV, vector<uint32_t> &path){
 	//считается что все вершины доступны иначе добавить вес ребра = бесконечности или др. промеж. варианты
-uint32_t n=tabSmej.size();vector<uint32_t> dist(n, UINT32_MAX), parent(n);
+uint32_t n=adjacentList.size();
+vector<uint32_t> dist(n, UINT32_MAX), parent(n);
 dist[numBorderV] = 0; // // стартовая вершина
 vector<bool> used(n);
 for (uint32_t i = 0; i < n; ++i) {
-	int64_t vertex = -1;
+	int32_t vertex = -1;
 	for (uint32_t j = 0; j < n; ++j)
 		if (!used[j] && (vertex == -1 || dist[j] < dist[vertex]))
 			vertex = j;
 		if (dist[vertex] == UINT32_MAX)
 		break;
 		used[vertex] = true;
-		for (size_t j = 0; j < tabSmej[vertex].smej.size(); ++j) {
-			uint32_t to = tabSmej[vertex].smej[j];
+		for (size_t j = 0; j < adjacentList[vertex].adjacentPoints.size(); ++j) {
+			uint32_t to = adjacentList[vertex].adjacentPoints[j];
 			const uint32_t len =1; // вес ребра
 			if (dist[vertex] + len < dist[to]) {
 				dist[to] = dist[vertex] + len;
@@ -220,8 +221,8 @@ for (uint32_t i = 0; i < n; ++i) {
 
 void createDxDTable( vector<vector<uint32_t>> & inDxD){
 	uint32_t i=0;
-	for(point p : tabSmej){
-		for( uint32_t j: p.smej){
+	for(point p : adjacentList){
+		for( uint32_t j: p.adjacentPoints){
 			inDxD[i][j]=1;  // set 1 to contiguous(smej) vertex
 		}
 	++i;	
@@ -230,16 +231,22 @@ void createDxDTable( vector<vector<uint32_t>> & inDxD){
 
 void adjacentMatrix(vector<vector<uint32_t>> & inMatrix) {
 	inMatrix.clear();
-	unsigned n = tabSmej.size();
+	const uint32_t cost = 1; // default cost to move between two adjacent vertex
+	uint32_t n = adjacentList.size();
 	vector<uint32_t> v;
-	for (unsigned j = 0; j < n; ++j) {
+	for (uint32_t j = 0; j < n; ++j) {
 		v.push_back(UINT32_MAX);
 	}
-	for (unsigned i = 0; i < n; ++i) {
+	for (uint32_t i = 0; i < n; ++i) {
 		inMatrix.push_back(v);
 	}
-	for (unsigned i = 0; i < n; ++i) inMatrix[i][i] = 0;
-	// TODO: перевести из списка смежности в матрицу смежности
+	for (uint32_t i = 0; i < n; ++i) inMatrix[i][i] = 0;
+	// перевод из списка смежности в матрицу смежности
+	for (uint32_t i = 0; i < n; i++){
+		for (uint32_t vertex : adjacentList[i].adjacentPoints){
+			inMatrix[i][vertex] = cost;
+		}
+	}
 }
 
 vector<uint32_t> Floid_Yorshell(uint32_t start, uint32_t end) { // start and end path vertex numbers
@@ -269,6 +276,7 @@ vector<uint32_t> Floid_Yorshell(uint32_t start, uint32_t end) { // start and end
 						adjacentMatrix[i][j] = adjacentMatrix[i][k] + adjacentMatrix[k][j];
 						parentsMatrix[i][j] = k;
 					}
+		used = true;
 	}
 	// TODO:recover path;
 	do {
@@ -283,27 +291,31 @@ vector<uint32_t> Floid_Yorshell(uint32_t start, uint32_t end) { // start and end
 void BalanceArea() {
 	while (terrainsDisbalanced(1)) {
 		std::sort(list_terrains.begin(), list_terrains.end(), [](terrain lkdm, terrain rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
-		vector<terrain>::iterator kingdIterator = list_terrains.begin();
-		while (kingdIterator != (list_terrains.end() - 1)) {
-			terrain kingd = *kingdIterator;
-			++kingdIterator;
-			for (auto numBorderV : kingd.borders) {//any vertex from nim terrain
-			// далее по алгоритму декстры ищем путь к наибольшей терр
-			// по алгоритму флойда-уоршелла ищем все пути и выбираем наикороткий
-			vector<uint32_t> path;
-			//DjekstraPath();
-			// TODO: break ;	
-			}
+		terrain kingdMin = *list_terrains.begin();
+		terrain kingdMax = *(list_terrains.end() - 1);
+		vector<vector<uint32_t>> pathList;
+		for (auto numBorderKingdMin : kingdMin.borders) {//any vertex from nim terrain
+			// по алгоритму флойда-уоршелла ищем все пути и выбираем наиболее короткий между 2умя королевствами ( рассматриваем пограниные точки )
+			for (auto numBorderKingdMax : kingdMax.borders) {
+				pathList.push_back(Floid_Yorshell(numBorderKingdMin, numBorderKingdMax));
+			}	
 		}
+		std::sort(pathList.begin(), pathList.end(), [](vector<vector<uint32_t>> lpath, vector<vector<uint32_t>> rpath) { return lpath.size() < rpath.size(); });
+		// push points from max terrain to min terrain
+		// TODO: trace path acros all terrain
+		// двигаясь по пути
+		// смотрю следующего владельца 
+		// забираю его точку
+		// если это не kingdMax то продолжаю
 	}
 }
 
-bool terrainsDisbalanced(uint16_t offset){ // offset - допуск на равенство 
-	uint16_t max=list_terrains[0].list_v.size();
+bool terrainsDisbalanced(uint32_t offset){ // offset - допуск на равенство 
+	uint32_t max=list_terrains[0].list_v.size();
 	for(auto terr : list_terrains){
 		if(max < terr.list_v.size())max=terr.list_v.size();
 	}
-	uint16_t min=list_terrains[0].list_v.size();
+	uint32_t min=list_terrains[0].list_v.size();
 	for(auto terr : list_terrains){
 		if(min > terr.list_v.size())min=terr.list_v.size();
 	}
@@ -344,9 +356,9 @@ void FillMap(){
 			//  если заграничная точка ничья то присваиваем (только 1)
 			//  далее прохожу по границе numV - номер заграничной вершины(точки)
 			// двигаюсь по списку смежности - по смежным вершинам вершины "tabSmej[kingd.borders[iterOnBorders[i]]]"
-			for(uint32_t numV: tabSmej[kingd.borders[iterOnBorders[kingd.my_N() - 1]]].smej){
-				if(tabSmej[numV].N_owner==0){
-					tabSmej[numV].N_owner=kingd.my_N();
+			for(uint32_t numV: adjacentList[kingd.borders[iterOnBorders[kingd.my_N() - 1]]].adjacentPoints){
+				if(adjacentList[numV].N_owner==0){
+					adjacentList[numV].N_owner=kingd.my_N();
 					kingd.list_v.push_back(numV);
 					break; // quit if ok
 				}
@@ -357,7 +369,7 @@ void FillMap(){
 	}
 	
 	// выравниваем площадь
-	//BalanceArea();
+	BalanceArea();
 	
 }
 	public:
@@ -369,8 +381,6 @@ void FillMap(){
 			AddPoitsToMap(p); 
 			cout<<"poins scre\n";
 			MapToScreen();
-			// определяем положения точек
-		//	GenerateCoord(p);
 			// заполняем территорию карты
 			FillMap();//TODO: infinity loop there !!!!
 			cout << endl;
@@ -378,10 +388,10 @@ void FillMap(){
 		}
 		void PrintTabSmej(){
 			uint32_t i=0;
-			for(point p:tabSmej){
-				cout << i <<" num smej:"<< p.smej.size() << endl;
+			for(point p:adjacentList){
+				cout << i <<" num smej:"<< p.adjacentPoints.size() << endl;
 				++i;
-				for(uint32_t v: p.smej){
+				for(uint32_t v: p.adjacentPoints){
 				cout << v <<" " ;
 				}
 			cout << endl;

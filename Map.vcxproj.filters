@@ -21,18 +21,12 @@
     <ClCompile Include="Floyd_Warshall_VS_A(star).cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="path_finder_astar.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CImg.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Map.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="path_finder_astar.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
