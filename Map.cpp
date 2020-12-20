@@ -221,6 +221,7 @@ for (uint32_t i = 0; i < n; ++i) {
 
 void createDxDTable( vector<vector<uint32_t>> & inDxD){
 	uint32_t i=0;
+	inDxD.clear(); // 
 	for(point p : adjacentList){
 		for( uint32_t j: p.adjacentPoints){
 			inDxD[i][j]=1;  // set 1 to contiguous(smej) vertex
@@ -249,42 +250,42 @@ void adjacentMatrix(vector<vector<uint32_t>> & inMatrix) {
 	}
 }
 
-vector<uint32_t> Floid_Yorshell(uint32_t start, uint32_t end) { // start and end path vertex numbers
-	bool revers = false;
-	static bool used = false;
-	vector<uint32_t> path;
-	if (end < start) {  // switch at place
-		end += start;
-		start = end - start;
-		end -= start;
-		revers = true;
+void recoveryPath(uint32_t a, uint32_t b, vector<vector<uint32_t>> & parent, vector<uint32_t>  & path) {
+	if (parent[a][b] == a) {
+		path.push_back(a);
 	}
+	else {
+		recoveryPath(a, parent[a][b], parent, path);
+		recoveryPath(parent[a][b], b, parent, path);
+	}
+}
+
+void Floyd_Warshall(vector<vector<uint32_t>> & parentsMatrix) {
+	vector<vector<uint32_t>> adjacentMatrix;
+	createDxDTable(adjacentMatrix);
+	uint32_t n = adjacentMatrix.size();
+	parentsMatrix.clear();
+	for (unsigned i = 0; i < n; ++i) {
+		vector<uint32_t> p;
+		for (unsigned j = 0; j < n; ++j)p.push_back(i);
+		parentsMatrix.push_back(p);
+	}
+	for (uint32_t k = 0; k < n; ++k)
+		for (uint32_t i = 0; i < n; ++i)
+			for (uint32_t j = 0; j < n; ++j)
+				if (adjacentMatrix[i][j] > adjacentMatrix[i][k] + adjacentMatrix[k][j]) {
+					adjacentMatrix[i][j] = adjacentMatrix[i][k] + adjacentMatrix[k][j];
+					parentsMatrix[i][j] = k;
+				}
+}
+
+vector<uint32_t> Floyd_Warhsall_Path(uint32_t start , uint32_t end, bool restart = false) { // start and end path vertex numbers
+	vector<uint32_t> path ;
 	static vector<vector<uint32_t>> parentsMatrix;
-	if (!used) {
-		vector<vector<uint32_t>> adjacentMatrix;
-		createDxDTable(adjacentMatrix);
-		uint32_t n = adjacentMatrix.size();
-		for (unsigned i = 0; i < n; ++i) {
-			vector<uint32_t> p;
-			for (unsigned j = 0; j < n; ++j)p.push_back(i);
-			parentsMatrix.push_back(p);
-		}
-		for (uint32_t k = 0; k < n; ++k)
-			for (uint32_t i = 0; i < n; ++i)
-				for (uint32_t j = 0; j < n; ++j)
-					if (adjacentMatrix[i][j] > adjacentMatrix[i][k] + adjacentMatrix[k][j]) {
-						adjacentMatrix[i][j] = adjacentMatrix[i][k] + adjacentMatrix[k][j];
-						parentsMatrix[i][j] = k;
-					}
-		used = true;
-	}
+	if (parentsMatrix.empty() || restart == true) Floyd_Warshall(parentsMatrix);
 	// TODO:recover path;
-	do {
-		path.push_back(end);
-		end = parentsMatrix[start][end];
-	} while (end != parentsMatrix[start][end]);
-	path.push_back(start);
-	if (!revers)reverse(path.begin(), path.end());
+	recoveryPath(start, end, parentsMatrix, path);
+	path.push_back(end);
 	return path;
 }
 	
@@ -293,14 +294,17 @@ void BalanceArea() {
 		std::sort(list_terrains.begin(), list_terrains.end(), [](terrain lkdm, terrain rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
 		terrain kingdMin = *list_terrains.begin();
 		terrain kingdMax = *(list_terrains.end() - 1);
-		vector<vector<uint32_t>> pathList;
+		//vector<vector<uint32_t>> pathList; // ?????? не нужен TODO: del
+		// ищу путь наименьшей длины с прим. Флойд-Уоршелла
+		vector<uint32_t> path;   // после должен быть наикоротким
+		uint32_t lengthMinPath = UINT32_MAX;
 		for (auto numBorderKingdMin : kingdMin.borders) {//any vertex from nim terrain
-			// по алгоритму флойда-уоршелла ищем все пути и выбираем наиболее короткий между 2умя королевствами ( рассматриваем пограниные точки )
 			for (auto numBorderKingdMax : kingdMax.borders) {
-				pathList.push_back(Floid_Yorshell(numBorderKingdMin, numBorderKingdMax));
-			}	
+				vector<uint32_t> tempPath = Floyd_Warhsall_Path(numBorderKingdMin, numBorderKingdMax);
+				if (tempPath.size() < lengthMinPath) path = tempPath;   // выбор наикороткого пути
+			}
+
 		}
-		std::sort(pathList.begin(), pathList.end(), [](vector<vector<uint32_t>> lpath, vector<vector<uint32_t>> rpath) { return lpath.size() < rpath.size(); });
 		// push points from max terrain to min terrain
 		// TODO: trace path acros all terrain
 		// двигаясь по пути
