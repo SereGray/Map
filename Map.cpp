@@ -298,6 +298,7 @@ vector<uint32_t> Floyd_Warhsall_Path(uint32_t start , uint32_t end, bool restart
 	
 void BalanceArea() {
 	//while (terrainsDisbalanced(1)) {
+	std::cout << " BalaceArea ...\n";
 	for(int i=0 ; i <1 ; ++i){   // TODO: TEST 1
 		std::sort(list_terrains.begin(), list_terrains.end(), [](terrain lkdm, terrain rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
 		terrain kingdMin = *list_terrains.begin();
@@ -319,22 +320,45 @@ void BalanceArea() {
 		// TODO: trace path acros all terrain
 		// двигаясь по пути
 		reverse(path.begin(), path.end());
-		uint32_t NumCurrentTerr = 0, NumPrevTerr = kingdMax.my_N();
-		vector<terrain>::iterator prevKingd = list_terrains.begin();
+		for (auto num : path) {
+			std::cout << num << " ";
+		}
+		std::cout << std::endl;
+		uint32_t prevNumPoint = 0;
+		vector<terrain>::iterator prevKingd = list_terrains.end() - 1;
 		for(uint32_t NumPoint : path) {
 			// если текущий владелец отличается от владельца предыдущей точки меняю владельца точки
-			NumCurrentTerr = adjacentList[NumPoint].N_owner;
-			if (NumCurrentTerr != NumPrevTerr) {
+			//vector<terrain>::iterator currentKingd = find_if(list_terrains.begin(), list_terrains.end(), [NumPoint](terrain& Kingd) { return NumPoint == Kingd.my_N(); }); // TODO: check lambda	
+			auto owner = adjacentList[NumPoint].N_owner;
+			vector<terrain>::iterator currentKingd = find_if(list_terrains.begin(), list_terrains.end(), [owner](terrain& kingd) { return owner == kingd.my_N(); });																																						   //NumCurrentTerr = adjacentList[NumPoint].N_owner;
+			cout << "Num point="<<NumPoint<< endl;
+			if (currentKingd->my_N() != prevKingd->my_N()){
+				cout << " Next Terr OK ..." << endl;
 				// найти предыдущ terrain и убрать у него точку из списка   find_if
-				vector<terrain>::iterator currentKingd = find_if(list_terrains.begin(), list_terrains.end(), [NumCurrentTerr](terrain &Kingd) { return NumCurrentTerr == Kingd.my_N(); }); // TODO: check lambda
-				vector<uint32_t>::iterator prevPointIt = find_if(prevKingd->list_v.begin(), prevKingd->list_v.end(), [NumPoint](uint32_t& pnt) { return NumPoint == pnt; }); //and there
-				prevKingd->list_v.erase(prevPointIt); // удалил вершину из списка
-				currentKingd->list_v.push_back(NumPoint); // добавил вершину в список 
+				
+				// нахожу текущую точку(указатель на нее) у предыдущего королевства
+				
+				vector<uint32_t>::iterator prevPointIt = find_if(prevKingd->list_v.begin(), prevKingd->list_v.end(), [prevNumPoint](uint32_t& pnt) { return prevNumPoint == pnt; }); //and there
+				for (auto i : currentKingd->list_v) {
+					cout << i << " " << endl;
+				}
+				cout << endl;
+				cout << "previos Kingd N owner =" << prevKingd->my_N() << endl;
+				prevKingd->list_v.erase(prevPointIt); // удалил вершину из пред списка
+				
+				for (auto i : currentKingd->list_v) {
+					cout << i << " " << endl;
+				}
+				cout << endl;
+				currentKingd->list_v.push_back(prevNumPoint); // добавил вершину в текущ список 
+				for (auto i : currentKingd->list_v) {
+					cout << i << " " << endl;
+				}
+				cout << endl;
 				prevKingd = currentKingd; 
-				NumPrevTerr = NumCurrentTerr;
-				adjacentList[NumPoint].N_owner = currentKingd->my_N(); // присвоил вершину окончательно в списке смежности
-				// TODO: провести изменения в adjacentList - > point -> N_owner
+				adjacentList[prevNumPoint].N_owner = currentKingd->my_N(); // присвоил вершину окончательно в списке смежности
 			}
+			prevNumPoint = NumPoint;
 		};
 	}
 }
