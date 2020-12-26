@@ -332,6 +332,7 @@ void BalanceArea() {
 				currentKingd->list_v.push_back(NumPoint); // добавил вершину в список 
 				prevKingd = currentKingd; 
 				NumPrevTerr = NumCurrentTerr;
+				adjacentList[NumPoint].N_owner = currentKingd->my_N(); // присвоил вершину окончательно в списке смежности
 				// TODO: провести изменения в adjacentList - > point -> N_owner
 			}
 		};
@@ -395,8 +396,6 @@ void FillMap(){
 		}	
 		for(auto & kingd : list_terrains) RefreshBorders(kingd);
 	}
-	// выравниваем площадь
-	//BalanceArea();
 	
 }
 	public:
@@ -412,9 +411,16 @@ void FillMap(){
 			FillMap();//TODO: infinity loop there !!!!
 			cout << endl;
 			MapToScreen();
+			for (auto t : list_terrains) {
+				cout << "\n terrain N=" << t.my_N() << " count points=" << t.list_v.size() << endl;
+			}
 			// Выравниваю карту на 1 пиксель
 			BalanceArea();
+			cout << "Balancing ...\n";
 			MapToScreen();
+			for (auto t : list_terrains) {
+				cout << "\n terrain N=" << t.my_N() << " count points=" << t.list_v.size() << endl;
+			}
 		}
 		void PrintTabSmej(){
 			uint32_t i=0;
