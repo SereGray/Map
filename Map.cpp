@@ -74,6 +74,12 @@ uint32_t getNum(uint32_t x, uint32_t y){// получение номера ве�
 	return x+y*width;
 }
 
+pair<uint32_t, uint32_t> getCoord(uint32_t Num){
+	uint32_t x = Num - (Num / width) * width ;
+	uint32_t y = Num / width ;
+	return make_pair(x ,y);
+}
+
 void GenerateTab(){
 	uint32_t max=height*width; // maby uint64_t
 	uint32_t w=0,h=0;
@@ -163,13 +169,33 @@ uint32_t k=0;
 
 // функц вывода карты в графический файл с помощью CImg.h
 // TODO: this
-void MapToFile() {
+public:
+void toFile(uint8_t point_size=10) {
+	if(point_size < 10) point_size = 10;
 	using namespace cimg_library;
-
-	//CImg img;
-
+	// генерация цветов областей
+	vector<vector<unsigned char>> colors;
+	for(uint32_t i=0; i <= list_terrains.size(); ++i){ //TODO: check list size and N_owner 
+		unsigned char r,g,b;
+		r = rand() % UINT8_MAX;
+		g = rand() % UINT8_MAX;
+		b = rand() % UINT8_MAX;
+		vector<unsigned char> temp = { r, g, b};
+		colors.push_back(temp);
+	}
+	CImg<uint8_t> img(width * point_size, height * point_size, 1, 3); 
+	// двигаюсь по списку вершин и окрашиваю каждую точку в свой цвет области
+	uint32_t counter = 0;
+	for(point p: adjacentList){
+		uint32_t country = p.N_owner;
+		const unsigned char color[]={ colors[country][0],colors[country][1],colors[country][2]};
+		pair<uint32_t,uint32_t> coord = getCoord(counter);
+		img.draw_rectangle((coord.first * point_size),(coord.second * point_size),( coord.first * point_size + point_size),( coord.second * point_size + point_size), color);
+		++counter;
+	}
+	img.save_bmp("map.bmp");
 }
-
+private:
 bool freeSpace(){
 	static uint32_t maxIteration=100;
 	if(--maxIteration==0)return false;
@@ -291,7 +317,6 @@ vector<uint32_t> Floyd_Warhsall_Path(uint32_t start , uint32_t end, bool restart
 	vector<uint32_t> path ;
 	static vector<vector<uint32_t>> parentsMatrix;
 	if (parentsMatrix.empty() || restart == true) Floyd_Warshall(parentsMatrix);
-	// TODO:recover path;
 	recoveryPath(start, end, parentsMatrix, path);
 	path.push_back(end);
 	return path;
@@ -299,7 +324,6 @@ vector<uint32_t> Floyd_Warhsall_Path(uint32_t start , uint32_t end, bool restart
 	
 void BalanceArea() {
 	while (terrainsDisbalanced(1)) {
-	std::cout << " BalaceArea ...\n";
 		std::sort(list_terrains.begin(), list_terrains.end(), [](terrain lkdm, terrain rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
 		terrain kingdMin = *list_terrains.begin();
 		terrain kingdMax = *(list_terrains.end() - 1);
@@ -318,41 +342,20 @@ void BalanceArea() {
 		// push points from max terrain to min terrain
 		// двигаясь по пути
 		reverse(path.begin(), path.end());
-		for (auto num : path) {
-			std::cout << num << " ";
-		}
-		std::cout << std::endl;
 		uint32_t prevNumPoint = 0;
 		vector<terrain>::iterator prevKingd = list_terrains.end() - 1;
 		for(uint32_t NumPoint : path) {
 			// если текущий владелец отличается от владельца предыдущей точки меняю владельца точки
 			auto owner = adjacentList[NumPoint].N_owner;
 			vector<terrain>::iterator currentKingd = find_if(list_terrains.begin(), list_terrains.end(), [owner](terrain& kingd) { return owner == kingd.my_N(); });																																						   //NumCurrentTerr = adjacentList[NumPoint].N_owner;
-			cout << "Num point="<<NumPoint<< endl;
 			if (currentKingd->my_N() != prevKingd->my_N()){
-				cout << " Next Terr OK ..." << endl;
 				// найти предыдущ terrain и убрать у него точку из списка   find_if
 				
 				// нахожу текущую точку(указатель на нее) у предыдущего королевства
 				
 				vector<uint32_t>::iterator prevPointIt = find_if(prevKingd->list_v.begin(), prevKingd->list_v.end(), [prevNumPoint](uint32_t& pnt) { return prevNumPoint == pnt; }); //and there
-				for (auto i : currentKingd->list_v) {
-					cout << i << " " << endl;
-				}
-				cout << endl;
-				cout << "previos Kingd N owner =" << prevKingd->my_N() << endl;
-				for(auto i: prevKingd->list_v) cout << i << " ";
 				prevKingd->list_v.erase(prevPointIt); // удалил вершину из пред списка
-				
-				for (auto i : currentKingd->list_v) {
-					cout << i << " " << endl;
-				}
-				cout << endl;
 				currentKingd->list_v.push_back(prevNumPoint); // добавил вершину в текущ список 
-				for (auto i : currentKingd->list_v) {
-					cout << i << " " << endl;
-				}
-				cout << endl;
 				prevKingd = currentKingd; 
 				adjacentList[prevNumPoint].N_owner = currentKingd->my_N(); // присвоил вершину окончательно в списке смежности
 			}
@@ -434,16 +437,10 @@ void FillMap(){
 			FillMap();//TODO: infinity loop there !!!!
 			cout << endl;
 			MapToScreen();
-			for (auto t : list_terrains) {
-				cout << "\n terrain N=" << t.my_N() << " count points=" << t.list_v.size() << endl;
-			}
 			// Выравниваю карту на 1 пиксель
 			BalanceArea();
 			cout << "Balancing ...\n";
 			MapToScreen();
-			for (auto t : list_terrains) {
-				cout << "\n terrain N=" << t.my_N() << " count points=" << t.list_v.size() << endl;
-			}
 		}
 		void PrintTabSmej(){
 			uint32_t i=0;
@@ -462,6 +459,7 @@ void FillMap(){
 int main(){
 	cout<< " test "<< endl;
 	map m(10,10,7);
+	m.toFile(10);
 //	m.PrintTabSmej();
 
 
