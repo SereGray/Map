@@ -297,9 +297,9 @@ vector<uint32_t> Floyd_Warhsall_Path(uint32_t start , uint32_t end, bool restart
 }
 	
 void BalanceArea() {
-	//while (terrainsDisbalanced(1)) {
+	while (terrainsDisbalanced(1)) {
 	std::cout << " BalaceArea ...\n";
-	for(int i=0 ; i <1 ; ++i){   // TODO: TEST 1
+	//for(int i=0 ; i <1 ; ++i){   // TODO: TEST 1
 		std::sort(list_terrains.begin(), list_terrains.end(), [](terrain lkdm, terrain rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
 		terrain kingdMin = *list_terrains.begin();
 		terrain kingdMax = *(list_terrains.end() - 1);
