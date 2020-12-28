@@ -161,10 +161,11 @@ uint32_t k=0;
 	}
 }
 
-// функц вывода карты в файл с помощью CImg.h
+// функц вывода карты в графический файл с помощью CImg.h
 // TODO: this
 void MapToFile() {
 	using namespace cimg_library;
+
 	//CImg img;
 
 }
@@ -299,11 +300,9 @@ vector<uint32_t> Floyd_Warhsall_Path(uint32_t start , uint32_t end, bool restart
 void BalanceArea() {
 	while (terrainsDisbalanced(1)) {
 	std::cout << " BalaceArea ...\n";
-	//for(int i=0 ; i <1 ; ++i){   // TODO: TEST 1
 		std::sort(list_terrains.begin(), list_terrains.end(), [](terrain lkdm, terrain rkdm) { return lkdm.list_v.size() < rkdm.list_v.size(); });
 		terrain kingdMin = *list_terrains.begin();
 		terrain kingdMax = *(list_terrains.end() - 1);
-		//vector<vector<uint32_t>> pathList; // ?????? не нужен TODO: del
 		// ищу путь наименьшей длины с прим. Флойд-Уоршелла
 		vector<uint32_t> path;   // после должен быть наикоротким
 		uint32_t lengthMinPath = UINT32_MAX;
@@ -317,7 +316,6 @@ void BalanceArea() {
 			}
 		}
 		// push points from max terrain to min terrain
-		// TODO: trace path acros all terrain
 		// двигаясь по пути
 		reverse(path.begin(), path.end());
 		for (auto num : path) {
@@ -328,7 +326,6 @@ void BalanceArea() {
 		vector<terrain>::iterator prevKingd = list_terrains.end() - 1;
 		for(uint32_t NumPoint : path) {
 			// если текущий владелец отличается от владельца предыдущей точки меняю владельца точки
-			//vector<terrain>::iterator currentKingd = find_if(list_terrains.begin(), list_terrains.end(), [NumPoint](terrain& Kingd) { return NumPoint == Kingd.my_N(); }); // TODO: check lambda	
 			auto owner = adjacentList[NumPoint].N_owner;
 			vector<terrain>::iterator currentKingd = find_if(list_terrains.begin(), list_terrains.end(), [owner](terrain& kingd) { return owner == kingd.my_N(); });																																						   //NumCurrentTerr = adjacentList[NumPoint].N_owner;
 			cout << "Num point="<<NumPoint<< endl;
@@ -344,6 +341,7 @@ void BalanceArea() {
 				}
 				cout << endl;
 				cout << "previos Kingd N owner =" << prevKingd->my_N() << endl;
+				for(auto i: prevKingd->list_v) cout << i << " ";
 				prevKingd->list_v.erase(prevPointIt); // удалил вершину из пред списка
 				
 				for (auto i : currentKingd->list_v) {
@@ -359,7 +357,8 @@ void BalanceArea() {
 				adjacentList[prevNumPoint].N_owner = currentKingd->my_N(); // присвоил вершину окончательно в списке смежности
 			}
 			prevNumPoint = NumPoint;
-		};
+		}
+		for(auto & kingd : list_terrains) RefreshBorders(kingd);
 	}
 }
 
@@ -462,7 +461,7 @@ void FillMap(){
 
 int main(){
 	cout<< " test "<< endl;
-	map m(5,5,3);
+	map m(10,10,7);
 //	m.PrintTabSmej();
 
 
